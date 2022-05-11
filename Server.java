@@ -7,6 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 //import java.lang.Thread;
 
+
+public class Q&A {
+
+	private Character answer;
+	void public question1(){
+		System.out.println("
+
+
+
 public class Server {
 	//Note: Static variables are tied to a class, not to objects of that class.
 	// Here we use static variables because that makes all the threads able to 
@@ -14,16 +23,24 @@ public class Server {
 	//This variable is only used by main() so we just make a normal Integer
 	static Integer thread_count = 0; //How many clients are connected
 
+
+
 	//Note: Atomics are a safe way to share an int between threads
 	//Using an AtomicInteger must be used if multiple threads are going to read and write to a shared variable
 	//This just tracks how many lines total have been read from the clients
 	static AtomicInteger chat_count = new AtomicInteger(); 
-	
+
 	//Note: A ConcurrentHashMap is a thread-safe hash table you can share between threads
 	// You can use .get() to get data from it and .put() to put data into it
 	// If you do a get() and there's nothing there, it will throw an exception
 	static ConcurrentHashMap<Integer,Integer> scoreboard = new ConcurrentHashMap<Integer,Integer>(); //Holds Scores
 	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
+
+	static ConcurrentHashMap<Integer,String> answers = new ConcurrentHashMap<Integer,String>(); //hash mapu of answers
+
+	static ConcurrentHashMap<Integer,Boolean> hasAnswered = new ConcurrentHashMap<Integer,Boolean>(); //hash mapu of if they have answered
+	
+	static ConcurrentHashMap<String,Charcter> Q&A = new ConcurrentHashMap<String,Character>(); //hash mapu of questions and answers
 
 	//YOU: You may need to make another ConcurrentHashMap to track, for example, what question each thread is on
 
@@ -55,26 +72,43 @@ public class Server {
 
 				//Save their name into the ConcurrentHashMap
 				names.put(thread_id,inputLine);
-				
+
 
 				//Set our score to 0 in the ConcurrentHashMap to begin with
 				scoreboard.put(thread_id,0);
 
 				while(true) {  //STEP 1
 					if (thread_count > 2 ){ break;}
-			//		else { break;}
-					System.out.println("one");
+					//	else { break;}
+					//	System.out.println("one");
 					try{
 						Thread.sleep(250);
-						System.out.println("two");
+						//	System.out.println("two");
 					} catch(InterruptedException ex) {
-					//	Thread.currentThread().interrupt();
-						System.out.println("three");
+						//	Thread.currentThread().interrupt();
+						//	System.out.println("three");
 					}
 				}
-					//YOU: Remove this demo code and write Jeopardy
+				//YOU: Remove this demo code and write Jeopardy
 				while ((inputLine = socket_in.readLine()) != null) {
-					System.out.println("Thread " + thread_id + " read: " + inputLine);
+					//insert into map set bool kind of stuff
+					//System.out.println("Thread " + thread_id + " read: " + inputLine);
+
+					answers.put(thread_id,inputLine);
+					while(answers.size() <= 2){
+						if(answers.containsValue(thread_id))
+							hasAnswered.put(thread_id,true);
+						else{ hasAnswered.put(thread_id,false);
+							try{
+								Thread.sleep(100000);
+							} catch(InterruptedException ex) {
+							}
+						}
+					}
+					/*	if(inputLine.isEmpty()){
+						atomic bool answered = 0;
+						HasAnswered(Thread_id,bool);
+						}*/
 					if (inputLine.equals("QUIT"))
 						break;
 					//Note: If you want to use atomics, it works like this
@@ -110,11 +144,11 @@ public class Server {
 				}
 				System.out.println("Thread closing");
 				socket.close();
-			 }catch (IOException e) {
+			}catch (IOException e) {
 				System.out.println("HEYO");
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 
