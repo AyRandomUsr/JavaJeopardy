@@ -1,0 +1,195 @@
+//You: Put your and your parter's names here
+//You: Describe which bullet points you implemented
+//You: If you did anything worthy of extra credit, put them here
+import java.net.*;
+import java.io.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+//import java.lang.Thread;
+
+
+public class Server {
+	//Note: Static variables are tied to a class, not to objects of that class.
+	// Here we use static variables because that makes all the threads able to 
+	// access them equally well. You just have to be careful to be "thread safe".
+	//This variable is only used by main() so we just make a normal Integer
+	static Integer thread_count = 0; //How many clients are connected
+
+
+
+	//Note: Atomics are a safe way to share an int between threads
+	//Using an AtomicInteger must be used if multiple threads are going to read and write to a shared variable
+	//This just tracks how many lines total have been read from the clients
+	static AtomicInteger chat_count = new AtomicInteger(); 
+
+	//Note: A ConcurrentHashMap is a thread-safe hash table you can share between threads
+	// You can use .get() to get data from it and .put() to put data into it
+	// If you do a get() and there's nothing there, it will throw an exception
+	static ConcurrentHashMap<Integer,Integer> scoreboard = new ConcurrentHashMap<Integer,Integer>(); //Holds Scores
+	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
+
+	static ConcurrentHashMap<Integer,String> answers = new ConcurrentHashMap<Integer,String>(); //hash mapu of answers
+
+	static ConcurrentHashMap<Integer,Boolean> hasAnswered = new ConcurrentHashMap<Integer,Boolean>(); //hash mapu of if they have answered
+	
+//	static ConcurrentHashMap<String,Charcter> QNA = new ConcurrentHashMap<String,Character>(); //hash mapu of questions and answers
+
+	//YOU: You may need to make another ConcurrentHashMap to track, for example, what question each thread is on
+
+	//YOU: You need to add all the logic for doing a quiz, including maybe another static nested class or something
+	// You might also might want to make a class so as to consolidate the ConcurrentHashMaps into one
+
+	//This is a "nested class" - a class defined within another class
+	static public class ServerThread extends Thread {
+		private Socket socket = null;
+		private Integer thread_id = -1;
+
+		public ServerThread(Socket socket, int thread_id) {
+			super("ServerThread");
+			this.socket = socket;
+			this.thread_id = thread_id; //Note: Each thread has its own unique thread_id
+		}
+
+
+
+		public void run() {
+			try (
+					PrintWriter socket_out = new PrintWriter(socket.getOutputStream(), true);
+					BufferedReader socket_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				) {
+				String inputLine, outputLine;
+				inputLine = socket_in.readLine(); //Get their name from the network connection
+				outputLine = "Welcome " + inputLine;
+				socket_out.println(outputLine); //Write a welcome message to the network connection
+
+				//Save their name into the ConcurrentHashMap
+				names.put(thread_id,inputLine);
+
+
+				//Set our score to 0 in the ConcurrentHashMap to begin with
+				scoreboard.put(thread_id,0);
+
+				while(true) {  //STEP 1
+					if (thread_count > 2 ){ break;}//making sure we have 3 or less threads
+					//	else { break;}
+					//	System.out.println("one");
+					try{
+						Thread.sleep(250);
+						//	System.out.println("two");
+					} catch(InterruptedException ex) {
+						//	Thread.currentThread().interrupt();
+						//	System.out.println("three");
+					}
+				}
+				//YOU: Remove this demo code and write Jeopardy
+					//Note: If you want to use atomics, it works like this
+				while ((inputLine = socket_in.readLine()) != null) {
+					System.out.println("A");
+					//TODO: add tracker for question to run while loop everytime
+					//insert into map set bool kind of stuff
+					//System.out.println("Thread " + thread_id + " read: " + inputLine);
+
+					answers.put(thread_id,inputLine);
+					// if(hasAnswered.containsValue(thread_id) == false)
+					while(answers.size() <= 2){
+ 					System.out.println("Hella above x");
+ 					System.out.println(answers.get(thread_id));
+ 					System.out.println("does it contain it?" + answers.contains(inputLine));
+					
+
+						if(answers.contains(inputLine)){//making sure we got an answer in our answer map
+ 						System.out.println("above x");
+							hasAnswered.put(thread_id,true);
+							 chat_count.getAndIncrement();
+ 							System.out.println(hasAnswered.get(thread_id));
+
+ 						System.out.println("Below x");
+						}
+						// int score = scoreboard.get(thread_id);
+						//scoreboard.get(thread_id);
+						//socket_out.println("Correct! Your score is now " + score);
+
+						//totalPoints += points
+						//
+
+						else{ hasAnswered.put(thread_id,false);//if we dont have an answer set map to false for has answered 
+							//System.out.println(x);
+							System.out.println("i am infinate");
+							try{
+								Thread.sleep(2000);
+							} catch(InterruptedException ex) {
+							}
+						}
+					}
+					//answers.clear();
+					/*	if(inputLine.isEmpty()){
+						atomic bool answered = 0;
+						HasAnswered(Thread_id,bool);
+						}*/
+					if (inputLine.equals("QUIT"))// quit when it sees QUIT
+						break;
+
+					//Access our score from the shared scoreboard
+					int score = scoreboard.get(thread_id);
+
+					//Sample example of getting a question right
+					//YOU: Replace this with actual quiz show logic that checks to see if they got the answer right
+					if (Math.random() < 0.5) { //50/50 chance of getting a question right
+						score += 100;
+						socket_out.println("Correct! Your score is now " + score);
+					}
+					else { //Wrong answer!
+						score -= 100;
+						socket_out.println("Wrong!!!! Score: " + score);
+					}
+					//Set our new score
+					scoreboard.put(thread_id,score);
+					//answers.clear();
+ 					//System.out.println("THE X IS " + x );
+					if(chat_count.get() == 3){// checks the amount of a
+					//Note: This prints the current scoreboard, delete it if it gets too spammy
+					System.out.println("====== Scoreboard ======");
+					//Note that this assumes we only have one game, it won't work with a second game, etc.
+					//But it should show you the way, so I am leaving it here
+					for (int i = 0; i < thread_count; i++) {
+						System.out.println(names.get(i) + ": " + scoreboard.get(i));
+					}
+					}
+					//YOU: Wait for the other clients to answer before moving on to the next question
+
+					System.out.println("B");
+				}
+				System.out.println("Thread closing");
+				socket.close();
+			}catch (IOException e) {
+				System.out.println("HEYO");
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+
+		if (args.length != 1) {
+			System.err.println("Usage: java Server <port number>");
+			System.exit(1);
+		}
+
+		int portNumber = Integer.parseInt(args[0]);
+		//YOU: Uncomment this line to get the code to work
+		boolean listening = true;
+
+		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
+			while (listening) {
+				ServerThread new_thread = new ServerThread(serverSocket.accept(),thread_count); 
+				new_thread.start();
+				System.out.println("Client " + Integer.toString(thread_count) + " connected");
+				thread_count++;
+			}
+		} catch (IOException e) {
+			System.err.println("Could not listen on port " + portNumber);
+			System.exit(-1);
+		}
+	}
+}
