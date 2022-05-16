@@ -158,7 +158,7 @@ public class Server {
 			//		System.out.println("BEFORE: " + chat_count);	
 				//	chat_count.getAndIncrement();
 					answers.put(thread_id,inputLine);
-			
+					hasAnswered.put(thread_id, false);	
 		
 
 			/*		boolean one = false;
@@ -176,7 +176,7 @@ public class Server {
 							//chat_count.incrementAndGet();
 						//	chat_count.incrementAndGet();
 						//	System.out.println("chat count: " + chat_count);
-							if(answers.containsValue(thread_id))
+						//	if(answers.containsValue(thread_id))
 							hasAnswered.put(thread_id,true);
 	//						System.out.println("AFTER if: " + thread_id + " " +  hasAnswered.get(thread_id));
 						}
@@ -187,7 +187,8 @@ public class Server {
 							} catch(InterruptedException ex) {
 							}
 						}
-					} 
+					}
+					 
 					/*	if(inputLine.isEmpty()){
 						atomic bool answered = 0;
 						HasAnswered(Thread_id,bool);
@@ -217,7 +218,7 @@ public class Server {
 				//	System.out.println("0 thread " + hasAnswered.get(0));
 				//	System.out.println("1 thread " + hasAnswered.get(1));
 				//	System.out.println("2 thread " + hasAnswered.get(2));
-					if(hasAnswered.get(0) && hasAnswered.get(1) && hasAnswered.get(2) ) {
+	//			if(hasAnswered.get(0) && hasAnswered.get(1) && hasAnswered.get(2) ) { 
 					//Note: This prints the current scoreboard, delete it if it gets too spammy
 						System.out.println("====== Scoreboard ======");
 						//Note that this assumes we only have one game, it won't work with a second game, etc.
@@ -225,7 +226,8 @@ public class Server {
 						for (int i = 0; i < thread_count; i++) {
 							System.out.println(names.get(i) + ": " + scoreboard.get(i));
 						}
-					}
+					
+					
 
 					//YOU: Wait for the other clients to answer before moving on to the next question
 					
@@ -234,7 +236,7 @@ public class Server {
 				System.out.println("Thread closing");
 				socket.close();
 			}catch (IOException e) {
-				System.out.println("HEYO");
+			//	System.out.println("HEYO");
 				e.printStackTrace();
 			}
 
